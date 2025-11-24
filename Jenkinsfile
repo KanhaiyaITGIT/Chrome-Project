@@ -5,9 +5,11 @@ pipeline {
     }
     stages {
         stage('git checkout') {
-            echo "git repo checking out"
-            git url: "https://github.com/KanhaiyaITGIT/Chrome-Project.git", branch: "main"
-            echo "git repo cloneed successfully"
+            steps {
+                echo "git repo checking out"
+                git url: "https://github.com/KanhaiyaITGIT/Chrome-Project.git", branch: "main"
+                echo "git repo cloneed successfully"
+            }
         }
         stage('code build') {
             steps {
