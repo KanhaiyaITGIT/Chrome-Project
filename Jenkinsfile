@@ -1,3 +1,4 @@
+Jenkins-Pipeline
 pipeline {
     agent any
     environment {
@@ -11,18 +12,22 @@ pipeline {
                 echo "git repo cloneed successfully"
             }
         }
-        stage('code build') {
-            steps {
-                echo "building code"
-                sh "mvn clean package -Dmaven.test.skip=true"
-                echo "code built successfully"
-            }
-        }
-        stage('code test') {
-            steps {
-                echo "code testing starting...."
-                sh "mvn test"
-                echo "code tested"
+        stage('Build & Test') {
+            parallel {
+                stage('code Build') {
+                    steps {
+                        echo "building code"
+                        sh "mvn clean package -Dmaven.test.skip=true"
+                        echo "code built successfully"
+                    }
+                }
+                stage('code Test') {
+                    steps {
+                        echo "code testing starting...."
+                        sh "mvn test"
+                        echo "code tested"
+                    }
+                }
             }
         }
         stage('code report genrate') {
@@ -40,7 +45,7 @@ pipeline {
                 echo "sonarqube analysis...."
                 withSonarQubeEnv('sonar-server') {
                     withCredentials([string(credentialsId: "sonar-credentials", variable: "SONAR_TOKEN")]) {
-                        sh "${sonarHome}/bin/sonar-scanner -Dsonar.login=$SONAR_TOKEN"
+                        sh(script: "${sonarHome}/bin/scanner -Dsonar.login=${env.SONAR_TOKEN}")
                     }
                 }
                 echo "sonarqube analysis completed"
@@ -49,7 +54,7 @@ pipeline {
         stage('quality gate') {
             steps {
                 timeout(time: 4, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline:false
+                    waitForQualityGate abortPipeline: false
                 }
             }
         }
